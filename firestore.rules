@@ -1,0 +1,133 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------------------------------------------
+    // BookShelf — collection: books (one collection stores everything)
+    // ---------------------------------------------------------------
+    // Access model:
+    //   * anonymous visitors can neither read nor write anything
+    //   * a signed-in person can only read and change their own rows
+    //   * a book whose userId is another person's uid is rejected
+    // The full shape of every book is validated here, on the server side:
+    //   * title: required (spaces only does not count), at most 100 chars
+    //   * author: required (spaces only does not count), at most 60 chars
+    //   * genre: one of Fiction | Non-Fiction | Academic | Other
+    //   * status: one of To Read | Reading | Finished
+    //   * rating: optional; if present a whole number from 0 to 5
+    //   * favorite: optional; if present a boolean
+    //   * notes: optional string, at most 300 chars
+    // Duplicate protection: the same person cannot save the same
+    // title + author twice, even with different letter case, because the
+    // document id (and the `key` field) is derived from
+    //   userId | lowercased(trimmed) title | lowercased(trimmed) author
+    // and creation is refused whenever that slot already exists.
+    // ---------------------------------------------------------------
+
+    function signedIn() {
+      return request.auth != null && request.auth.uid != null;
+    }
+
+    function data() {
+      return request.resource.data;
+    }
+
+    function titleOk() {
+      return 'title' in data()
+        && data().title is string
+        && data().title.trim() != ''
+        && data().title.size() <= 100;
+    }
+
+    function authorOk() {
+      return 'author' in data()
+        && data().author is string
+        && data().author.trim() != ''
+        && data().author.size() <= 60;
+    }
+
+    function genreOk() {
+      return 'genre' in data()
+        && data().genre is string
+        && data().genre in ['Fiction', 'Non-Fiction', 'Academic', 'Other'];
+    }
+
+    function statusOk() {
+      return 'status' in data()
+        && data().status is string
+        && data().status in ['To Read', 'Reading', 'Finished'];
+    }
+
+    function ratingOk() {
+      return !('rating' in data())
+        || data().rating == null
+        || (data().rating is int && data().rating >= 0 && data().rating <= 5)
+        || (data().rating is double
+            && math.round(data().rating) == data().rating
+            && data().rating >= 0.0
+            && data().rating <= 5.0);
+    }
+
+    function notesOk() {
+      return !('notes' in data())
+        || data().notes == null
+        || (data().notes is string && data().notes.size() <= 300);
+    }
+
+    function favoriteOk() {
+      return !('favorite' in data()) || data().favorite is bool;
+    }
+
+    function validBook() {
+      return titleOk() && authorOk() && genreOk() && statusOk()
+        && ratingOk() && notesOk() && favoriteOk();
+    }
+
+    // userId must belong to the signed-in person; every book belongs to
+    // the person who saved it.
+    function ownerWrite() {
+      return signedIn() && data().userId == request.auth.uid;
+    }
+
+    // Case-insensitive duplicate slot computed by the rules themselves.
+    function canonicSlot() {
+      return data().userId + '|'
+        + data().title.trim().lower() + '|'
+        + data().author.trim().lower();
+    }
+
+    // The slot the client used when the document was saved.
+    function fieldSlot() {
+      return data().userId + '|' + data().key;
+    }
+
+    match /books/{bookId} {
+      // A person who is logged in can see only their own rows.
+      allow get, list: if signedIn() && resource.data.userId == request.auth.uid;
+
+      // Adding a book: full validation + duplicate protection.
+      allow create: if ownerWrite() && validBook()
+        && !exists(/databases/$(database)/documents/books/$(canonicSlot()))
+        && (!('key' in data())
+            || !exists(/databases/$(database)/documents/books/$(fieldSlot())));
+
+      // Changing a book (favorite toggle and small edits): the owner only,
+      // userId can never be moved to another person, and the shape stays
+      // valid. If the dedupe key changes, the new key slot must be free.
+      allow update: if signedIn()
+        && resource.data.userId == request.auth.uid
+        && ownerWrite()
+        && validBook()
+        && (!('key' in data())
+            || fieldSlot() == resource.id
+            || !exists(/databases/$(database)/documents/books/$(fieldSlot())));
+
+      // Removing a book: the owner only.
+      allow delete: if signedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // Everything else is denied by default: no signed-in access outside
+    // /books and no access at all for visitors who are not logged in.
+  }
+}
