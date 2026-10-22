@@ -92,9 +92,69 @@ async function upsertBook(idToken, uid, book) {
   console.log(`signed in as ${TEST_EMAIL} (uid ${uid})`);
 
   const books = [
-    { title: 'Clean Code', author: 'Robert C. Martin', genre: 'Non-Fiction', status: 'Finished', rating: 5, favorite: true, notes: 'A classic about writing maintainable code.' },
-    { title: 'Atomic Habits', author: 'James Clear', genre: 'Non-Fiction', status: 'Reading', rating: 4, favorite: false, notes: 'Small habits, big results.' },
-    { title: 'Dune', author: 'Frank Herbert', genre: 'Fiction', status: 'To Read', rating: null, favorite: false, notes: '' },
+    {
+      title: 'Đắc Nhân Tâm (How to Win Friends and Influence People)',
+      author: 'Dale Carnegie',
+      genre: 'Non-Fiction',
+      status: 'Finished',
+      rating: 5,
+      favorite: true,
+      notes: 'Nghệ thuật thu phục lòng người và xây dựng các mối quan hệ bền vững trong cuộc sống.',
+    },
+    {
+      title: 'Nhà Giả Kim (The Alchemist)',
+      author: 'Paulo Coelho',
+      genre: 'Fiction',
+      status: 'Finished',
+      rating: 5,
+      favorite: true,
+      notes: 'Hành trình theo đuổi vận mệnh và ước mơ của cậu bé chăn cừu Santiago qua sa mạc.',
+    },
+    {
+      title: 'Clean Code: A Handbook of Agile Software Craftsmanship',
+      author: 'Robert C. Martin',
+      genre: 'Academic',
+      status: 'Reading',
+      rating: 4,
+      favorite: true,
+      notes: 'Nguyên lý viết mã nguồn sạch, dễ bảo trì, chuẩn mực kiến trúc cho lập trình viên.',
+    },
+    {
+      title: 'Sapiens: Lược Sử Loài Người',
+      author: 'Yuval Noah Harari',
+      genre: 'Non-Fiction',
+      status: 'Reading',
+      rating: 5,
+      favorite: false,
+      notes: 'Cái nhìn toàn diện về sự tiến hóa của loài người từ thời đồ đá đến kỷ nguyên công nghệ.',
+    },
+    {
+      title: 'Cấu Trúc Dữ Liệu và Giải Thuật',
+      author: 'Thomas H. Cormen',
+      genre: 'Academic',
+      status: 'To Read',
+      rating: null,
+      favorite: false,
+      notes: 'Tài liệu nền tảng chuyên sâu phục vụ nghiên cứu thuật toán và tối ưu hóa hệ thống.',
+    },
+    {
+      title: 'Tôi Thấy Hoa Vàng Trên Cỏ Xanh',
+      author: 'Nguyễn Nhật Ánh',
+      genre: 'Fiction',
+      status: 'Finished',
+      rating: 4,
+      favorite: false,
+      notes: 'Ký ức tuổi thơ êm đềm ở làng quê miền Trung với tình anh em và tình bạn trong sáng.',
+    },
+    {
+      title: 'Thiết Kế Cuộc Đời Bạn (Designing Your Life)',
+      author: 'Bill Burnett & Dave Evans',
+      genre: 'Other',
+      status: 'To Read',
+      rating: null,
+      favorite: false,
+      notes: 'Ứng dụng tư duy thiết kế (Design Thinking) của Stanford để định hình sự nghiệp và cuộc sống.',
+    },
   ];
   for (const book of books) {
     await upsertBook(session.idToken, uid, book);
