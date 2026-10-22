@@ -62,9 +62,9 @@ async function upsertBook(idToken, uid, book) {
     key: { stringValue: key },
     createdAt: { timestampValue: new Date().toISOString() },
   };
-  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/books?bookId=${encodeURIComponent(docId)}`;
+  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/books/${encodeURIComponent(docId)}`;
   const res = await fetch(url, {
-    method: 'POST',
+    method: 'PATCH',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
     body: JSON.stringify({ fields }),
   });

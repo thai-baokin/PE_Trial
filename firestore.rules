@@ -63,7 +63,7 @@ service cloud.firestore {
       return !('rating' in data())
         || data().rating == null
         || (data().rating is int && data().rating >= 0 && data().rating <= 5)
-        || (data().rating is double
+        || (data().rating is float
             && math.round(data().rating) == data().rating
             && data().rating >= 0.0
             && data().rating <= 5.0);

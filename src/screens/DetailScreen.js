@@ -8,7 +8,7 @@ import { useBooks } from '../BooksContext';
 import { colors, fontSizes, spacing } from '../theme';
 
 export default function DetailScreen({ bookId, onBack, onReselect }) {
-  const { findBook, toggle, remove, replace } = useBooks();
+  const { findBook, toggle, remove, update } = useBooks();
   const book = findBook(bookId);
 
   const [mode, setMode] = useState('view');
@@ -57,7 +57,7 @@ export default function DetailScreen({ bookId, onBack, onReselect }) {
     if (Object.keys(validateBook(editValues)).length > 0) return;
     setBusy(true);
     try {
-      const updated = await replace(book, editValues);
+      const updated = await update(book, editValues);
       setSubmitted(false);
       setMode('view');
       if (onReselect && updated && updated.id !== bookId) onReselect(updated.id);
